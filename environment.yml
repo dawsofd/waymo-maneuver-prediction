@@ -1,0 +1,24 @@
+name: 281-s2-group2
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - numpy<2
+  - pip
+  - pip:
+    - tensorflow==2.16.2
+    - standard-e2e --no-deps
+    - torchvision
+    - albumentations
+    - opencv-python-headless
+    - scikit-image
+    - scikit-learn
+    - matplotlib
+    - jupyter
+    - ipykernel
+    - pandas
+    - pyarrow
+    - pillow
+    - pyyaml
+    - tqdm
