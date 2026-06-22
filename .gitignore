@@ -8,18 +8,9 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-eggs/
-parts/
-var/
-sdist/
-develop-eggs/
-.installed.cfg
-lib/
-lib64/
 
 # Jupyter
 .ipynb_checkpoints/
-*.ipynb_checkpoints
 
 # Environments
 .env
@@ -27,28 +18,26 @@ lib64/
 env/
 venv/
 ENV/
-*.conda
-conda-meta/
 
-# Waymo / large data files
+# Waymo raw data (large, download via gsutil)
 *.tfrecord
 *.tfrecord-*
-data/*.tfrecord*
-raw_data/
+
+# StandardE2E processed cache (large, regenerate via configs/waymo_e2e_pano.yaml)
+data/processed/
+
+# Notebook output images
+notebooks/*.png
+
+# Old exploration artifacts
 sample_frames/
 sample_frames_v2/
 construction_all/
 camera_*.jpg
 test_frame.jpg
 
-# Processed outputs
-*.parquet
-*.arrow
-processed_data/
-
 # OS
 .DS_Store
-.DS_Store?
 ._*
 Thumbs.db
 

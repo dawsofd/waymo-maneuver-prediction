@@ -1,0 +1,57 @@
+{
+  "shard": "val_202504211843.tfrecord-00000-of-00093",
+  "n_sequences": 425,
+  "n_labeled_sequences": 425,
+  "n_unlabeled_sequences": 0,
+  "n_frames_total": 1150,
+  "cameras_per_frame": 8,
+  "camera_names": [
+    "FRONT",
+    "FRONT_LEFT",
+    "FRONT_RIGHT",
+    "SIDE_LEFT",
+    "SIDE_RIGHT",
+    "REAR",
+    "REAR_LEFT",
+    "REAR_RIGHT"
+  ],
+  "n_images_total": 9200,
+  "class_distribution_sequences": {
+    "Intersections": 105,
+    "Foreign Object Debris": 69,
+    "Construction": 13,
+    "Cyclist": 59,
+    "Pedestrian": 45,
+    "Single-Lane Maneuvers": 36,
+    "Others": 19,
+    "Special Vehicles": 22,
+    "Multi-Lane Maneuvers": 40,
+    "Cut-ins": 17
+  },
+  "class_distribution_frames": {
+    "Intersections": 285,
+    "Foreign Object Debris": 191,
+    "Construction": 37,
+    "Cyclist": 158,
+    "Pedestrian": 114,
+    "Single-Lane Maneuvers": 96,
+    "Others": 51,
+    "Special Vehicles": 62,
+    "Multi-Lane Maneuvers": 106,
+    "Cut-ins": 50
+  },
+  "full_val_set": {
+    "n_sequences": 479,
+    "n_shards": 93,
+    "est_frames": 95800,
+    "est_images": 766400
+  },
+  "key_findings": {
+    "sequences_span_all_shards": true,
+    "frames_per_seq_per_shard": 2.7,
+    "label_is_segment_level": true,
+    "cameras_per_frame": 8,
+    "front_camera_resolution": "972x1079",
+    "rear_camera_resolution": "972x551-587"
+  }
+}

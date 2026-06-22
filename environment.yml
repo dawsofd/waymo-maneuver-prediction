@@ -1,3 +1,6 @@
+# After creating the env, run:
+#   pip install standard-e2e --no-deps
+#   pip install "numpy<2"   # av2 may upgrade numpy; pin it back
 name: 281-s2-group2
 channels:
   - conda-forge
@@ -8,7 +11,6 @@ dependencies:
   - pip
   - pip:
     - tensorflow==2.16.2
-    - standard-e2e --no-deps
     - torchvision
     - albumentations
     - opencv-python-headless
@@ -22,3 +24,6 @@ dependencies:
     - pillow
     - pyyaml
     - tqdm
+    - av2
+    - google-auth
+    - google-auth-httplib2
