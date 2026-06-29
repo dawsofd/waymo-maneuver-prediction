@@ -45,4 +45,4 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
-*.swo
+*.swodata/bdd100k/
