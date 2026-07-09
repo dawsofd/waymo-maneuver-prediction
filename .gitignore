@@ -46,3 +46,6 @@ Thumbs.db
 .idea/
 *.swp
 *.swodata/bdd100k/
+data/bdd100k/
+notebooks/*.png
+notebooks/*.pt
