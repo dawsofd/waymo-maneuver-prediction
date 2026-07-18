@@ -27,7 +27,7 @@ ENV/
 data/processed/
 
 # Notebook output images
-notebooks/*.png
+notebooks/**/*.png
 
 # Old exploration artifacts
 sample_frames/
@@ -45,7 +45,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
-*.swodata/bdd100k/
+*.swo
 data/bdd100k/
 notebooks/*.png
 notebooks/*.pt

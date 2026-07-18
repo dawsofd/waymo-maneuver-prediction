@@ -28,7 +28,7 @@ from standard_e2e import Modality, TrajectoryComponent
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 
 TRAIN_DIR = 'data/processed/waymo_e2e/training/'
-OUTPUT_PATH = 'data/processed/waymo_e2e/train_manifest.json'
+OUTPUT_PATH = 'data/train_manifest.json'
 MAX_CONTEXT_FRAMES = 20
 
 MANEUVER_RANK = {
