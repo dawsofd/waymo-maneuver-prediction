@@ -12,23 +12,24 @@ We predict the ego-vehicle's upcoming maneuver from a single panoramic camera fr
 
 **Classification task:** 5-class sequence-level maneuver prediction (straight, left-turn, right-turn, lane-change-left, lane-change-right)  
 **Feature pipeline:** HOG · YOLO+Position · Road Geometry  
-**Dataset:** 1,875 labeled training sequences from WOD-E2E
+**Dataset:** 2,037 labeled training sequences from WOD-E2E
 
 ---
 
 ## Label Design
 
-We define maneuver labels by applying a geometric classifier (`classify_future_maneuver` in `scripts/build_train_manifest.py`) to the future trajectory of each sequence, then selecting the most complex maneuver observed:
+Maneuver labels are derived from the geometry of each sequence's future trajectory, following Waymo's official trajectory-shape classifier (`ClassifyTrack`). Full methodology, thresholds, and citations are documented in [docs/labeling.md](docs/labeling.md).
 
-| Maneuver | Criterion | Count | % |
-|---|---|---|---|
-| Straight | Heading change < 8° | 971 | 51.8% |
-| Right-turn | Heading change > 20°, rightward | 425 | 22.7% |
-| Left-turn | Heading change > 20°, leftward | 323 | 17.2% |
-| Lane-change-right | Heading change 8–20°, rightward | 86 | 4.6% |
-| Lane-change-left | Heading change 8–20°, leftward | 70 | 3.7% |
+| Maneuver | Count | % |
+|---|---|---|
+| Straight | 745 | 36.6% |
+| Right-turn | 467 | 22.9% |
+| Left-turn | 392 | 19.2% |
+| Lane-change-right | 222 | 10.9% |
+| Lane-change-left | 200 | 9.8% |
+| Stationary | 11 | 0.5% |
 
-**Why not Waymo's native intent labels?** Waymo's `intent` field contains routing commands (`GO_STRAIGHT`, `GO_LEFT`, `GO_RIGHT`) rather than maneuvers. See `notebooks/label_design.ipynb` for the empirical justification: a cross-tabulation of intent against our derived maneuvers shows each intent smears across multiple maneuvers, and lane changes have no dedicated intent value at all. This motivates our finer-grained, geometry-derived labels. Intent is used only as a comparison baseline; it is not part of our label logic.
+**Why not Waymo's native intent labels?** Waymo's `intent` field (`GO_STRAIGHT`, `GO_LEFT`, `GO_RIGHT`) contains routing commands rather than maneuvers. See `notebooks/label_design.ipynb` for the empirical justification: a cross-tabulation of intent against derived maneuvers shows each intent smears across multiple maneuvers, and lane changes have no dedicated intent value at all. Intent is used only as a comparison baseline; it is not part of our label logic.
 
 ---
 
@@ -40,6 +41,8 @@ We define maneuver labels by applying a geometric classifier (`classify_future_m
 │   └── waymo_e2e_pano.yaml         # StandardE2E preprocessing config
 ├── data/                           # raw data gitignored — see below
 │   └── train_manifest.json         # sequence → target-frame map + labels (committed)
+├── docs/
+│   └── labeling.md                 # maneuver labeling methodology + citations
 ├── notebooks/
 │   ├── waymo_feature_extraction.ipynb   # ← PRIMARY: feature pipeline
 │   ├── label_design.ipynb          # label justification (intent vs. maneuver)
@@ -62,18 +65,19 @@ This is the most important thing to understand before setting up.
 
 StandardE2E writes **one `.npz` file per frame**, not per sequence. After processing the training split you will have roughly **415,000 `.npz` files** named `{sequence_hash}_{frame_number}.npz`. This is expected and correct.
 
-The **manifest** (`data/train_manifest.json`, committed to the repo) is what ties everything together. It maps each of the **1,875 sequences** to a single target frame used for classification, along with its maneuver label and context frames:
+The **manifest** (`data/train_manifest.json`, committed to the repo) is what ties everything together. It maps each of the **2,037 sequences** to a single target frame used for classification, along with its maneuver label and context frames:
 
 ```json
 "003b62820d0e9345eb025de35b046999": {
   "label": "straight",
   "target_fname": "003b62820d0e9345eb025de35b046999_9.npz",
-  "context_fnames": [...],
+  "context_fnames": ["...", "..."],
+  "n_context": 12,
   "best_fname": "003b62820d0e9345eb025de35b046999_9.npz"
 }
 ```
 
-The feature extraction notebook loads only the `target_fname` for each sequence, so you never load all 415k files — just the 1,875 target frames.
+The feature extraction notebook loads only the `target_fname` for each sequence, so you never load all 415k files — just the 2,037 target frames.
 
 ---
 
@@ -107,13 +111,13 @@ pip install "numpy<2"
 
 ### 3. Set required environment variable
 
-Add this to your shell profile (`~/.zshrc` or `~/.bash_profile`), or set it before launching Jupyter:
+Set this in your shell **before** launching Python or Jupyter (add it to `~/.zshrc` or `~/.bash_profile` to make it permanent):
 
 ```bash
 export KMP_DUPLICATE_LIB_OK=TRUE
 ```
 
-> This must be set as a shell environment variable **before** Python starts. Setting it inside a notebook cell does not work.
+> This must be a shell environment variable set before Python starts. Setting it inside a notebook cell or in a script via `os.environ` does not reliably work, because the OpenMP libraries load at import time.
 
 ### 4. Authenticate with Google Cloud
 
@@ -150,7 +154,7 @@ ls data/processed/waymo_e2e/training/ | wc -l      # macOS / Linux
 dir data\processed\waymo_e2e\training\ | more       # Windows
 ```
 
-The `train_manifest.json` is already committed to the repo, so you do **not** need to regenerate it. (If you ever do need to rebuild it — e.g. after changing the labeling logic — run `python scripts/build_train_manifest.py` from the repo root.)
+The `train_manifest.json` is already committed to the repo, so you do **not** need to regenerate it. (If you ever do need to rebuild it — e.g. after changing the labeling logic — run `KMP_DUPLICATE_LIB_OK=TRUE python scripts/build_train_manifest.py` from the repo root.)
 
 Then run `notebooks/waymo_feature_extraction.ipynb` to extract features.
 
@@ -160,15 +164,15 @@ Then run `notebooks/waymo_feature_extraction.ipynb` to extract features.
 
 Open `notebooks/waymo_feature_extraction.ipynb` with the `281-s2-group2` kernel selected in VS Code.
 
-The notebook runs end-to-end and produces:
+The notebook runs end-to-end and produces three feature sets per sequence:
 
-| Feature | Dims | Description |
-|---|---|---|
-| HOG | 5,796 | Histogram of Oriented Gradients via skimage |
-| YOLO+Position | 32 | YOLOv8s detections (8 driving classes), normalized bbox position + relative size |
-| Road Geometry | 8 | Hough lines, vanishing point (pairwise intersection voting), road centroid via color segmentation |
+| Feature | Description |
+|---|---|
+| HOG | Histogram of Oriented Gradients via skimage |
+| YOLO+Position | YOLOv8s detections (driving-relevant classes), normalized bounding-box position + relative size |
+| Road Geometry | Hough lines, vanishing point (pairwise intersection voting), road centroid via color segmentation |
 
-Full extraction over 1,875 sequences takes approximately **2 minutes**.
+Feature arrays are saved as `.npy` files (`hog.npy`, `yolo.npy`, `road.npy`, `labels.npy`, `seq_ids.npy`) to the features directory. Full extraction over all sequences takes approximately **2 minutes**.
 
 **Key finding — road geometry encodes pre-maneuver positioning:** The road centroid x-coordinate (`centroid_x`) shifts rightward for left-turns and leftward for right-turns, reflecting the vehicle's lane positioning before executing the maneuver. This is computable purely from pixel values with no depth or map information.
 
@@ -178,7 +182,7 @@ Full extraction over 1,875 sequences takes approximately **2 minutes**.
 
 - **Image shape:** `(142, 384, 3)` — panoramic stitch of all 8 cameras, already preprocessed by StandardE2E's `PanoImageAdapter`
 - **No hood artifact:** StandardE2E crops it; no additional preprocessing needed
-- **Sequence-level labels:** One label per sequence, derived from the most complex future maneuver in that clip. Individual frames do not carry labels.
+- **Sequence-level labels:** One label per sequence, derived from the most complex future maneuver in that clip. Individual frames do not carry labels. See [docs/labeling.md](docs/labeling.md).
 - **HSV was dropped:** PCA showed HSV captured day/night lighting variation rather than maneuver-relevant variance
 
 ---
@@ -189,3 +193,4 @@ Full extraction over 1,875 sequences takes approximately **2 minutes**.
 - [StandardE2E GitHub](https://github.com/stepankonev/StandardE2E)
 - [StandardE2E Docs](https://standarde2e.readthedocs.io/en/latest/)
 - [WOD-E2E CVPR 2026 Paper (Xu et al.)](https://openaccess.thecvf.com/content/CVPR2026/papers/Xu_WOD-E2E_Waymo_Open_Dataset_for_End-to-End_Driving_in_Challenging_Long-tail_CVPR_2026_paper.pdf) — source for label defensibility
+- [WOMD CVPR 2021 Paper (Ettinger et al.)](https://arxiv.org/abs/2104.10133) — source of the ClassifyTrack maneuver taxonomy and thresholds
