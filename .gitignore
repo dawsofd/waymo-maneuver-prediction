@@ -23,11 +23,22 @@ ENV/
 *.tfrecord
 *.tfrecord-*
 
-# StandardE2E processed cache (large, regenerate via configs/waymo_e2e_pano.yaml)
+# StandardE2E processed cache + feature arrays (large; regenerate via
+# configs/waymo_e2e_pano.yaml, or pull the .npy arrays from the team Google Drive)
 data/processed/
+data/processed_calib/
+data/bdd100k/
+!data/processed/waymo_e2e/calibration_training.json
 
-# Notebook output images
+# Per-frame StandardE2E arrays — never track these (hundreds of thousands of files)
+*.npz
+
+# Model weights (downloaded on first run)
+*.pt
+
+# Notebook output images / figures
 notebooks/**/*.png
+notebooks/outputs/
 
 # Old exploration artifacts
 sample_frames/
@@ -35,6 +46,9 @@ sample_frames_v2/
 construction_all/
 camera_*.jpg
 test_frame.jpg
+
+# Cleanup staging (safe to delete this whole folder from Finder)
+_to_delete/
 
 # OS
 .DS_Store
@@ -46,6 +60,3 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
-data/bdd100k/
-notebooks/*.png
-notebooks/*.pt

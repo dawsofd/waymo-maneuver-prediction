@@ -1,0 +1,45 @@
+# StandardE2E preprocessing config — Waymo E2E, RETAINING camera calibration.
+# Key change vs. the group's original: pano_adapter  ->  cameras_identity_adapter
+# CamerasIdentityAdapter emits per-camera CameraData objects that keep K
+# (intrinsics), T (extrinsics) and D (distortion). PanoImageAdapter stitched the
+# three front cameras into one image and DISCARDED all calibration — that is why
+# the current cache has none.
+#
+#   max_size: downscales each camera's longest side to this many px AND rescales
+#             its intrinsics to match (projection stays valid). Remove the
+#             `params` block entirely to keep native resolution + native K.
+#             384 roughly matches the old pipeline's scale; tune as you like.
+
+preprocessing:
+  adapters:
+    - name: cameras_identity_adapter
+      params:
+        max_size: 384
+    - name: intent_identity_adapter
+    - name: future_states_identity_adapter
+    - name: past_states_identity_adapter
+    - name: preference_trajectory_adapter
+
+dataset:
+  features:
+    - frame_name: current_sensors
+      modalities:
+        - cameras          # now a dict {CameraDirection: CameraData(image, K, T, D)}
+        - intent
+        - past_states
+      selector:
+        name: current
+  labels:
+    - frame_name: current_future_states
+      modalities:
+        - future_states
+        - preference_trajectory
+      selector:
+        name: current
+    - frame_name: future_1second
+      modalities:
+        - future_states
+      selector:
+        name: closest_timestamp
+        parameters:
+          delta_t: 1.0

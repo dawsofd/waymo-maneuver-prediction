@@ -1,6 +1,17 @@
-# After creating the env, run:
+# DATASCI 281 — Group 2 Final Project environment
+#
+# Create with:
+#   CONDA_SOLVER=classic conda env create -f environment.yml
+#   conda activate 281-s2-group2
+#
+# Then install StandardE2E LAST, in this exact order (see README "Environment Setup"):
 #   pip install standard-e2e --no-deps
-#   pip install "numpy<2"   # av2 may upgrade numpy; pin it back
+#   pip install av2
+#   pip install "numpy<2"        # av2 may upgrade numpy; pin it back
+#
+# To capture the exact versions your machine actually resolved (recommended before
+# final submission so this file is fully reproducible):
+#   conda env export --no-builds > environment.lock.yml
 name: 281-s2-group2
 channels:
   - conda-forge
@@ -10,20 +21,28 @@ dependencies:
   - numpy<2
   - pip
   - pip:
-    - tensorflow==2.16.2
-    - torchvision
-    - albumentations
-    - opencv-python-headless
-    - scikit-image
-    - scikit-learn
-    - matplotlib
-    - jupyter
-    - ipykernel
-    - pandas
-    - pyarrow
-    - pillow
-    - pyyaml
-    - tqdm
-    - av2
-    - google-auth
-    - google-auth-httplib2
+      # --- core scientific stack ---
+      - scipy                       # ANOVA / stats used in feature QA
+      - pandas
+      - pyarrow
+      - scikit-learn
+      - scikit-image
+      - matplotlib
+      # --- computer vision ---
+      - opencv-python-headless      # Farneback optical flow, Hough, segmentation
+      - pillow
+      - ultralytics                 # YOLOv8 detections + backbone embeddings
+      # --- learned-embedding baselines (benchmark comparison only) ---
+      - torch
+      - torchvision
+      - tensorflow==2.16.2
+      - umap-learn                  # UMAP projections in exploration/analysis
+      # --- data access / utils ---
+      - albumentations
+      - av2
+      - google-auth
+      - google-auth-httplib2
+      - pyyaml
+      - tqdm
+      - jupyter
+      - ipykernel
