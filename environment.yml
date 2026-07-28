@@ -25,7 +25,7 @@ dependencies:
       - scipy                       # ANOVA / stats used in feature QA
       - pandas
       - pyarrow
-      - scikit-learn
+      - scikit-learn==1.8.0        # pinned so train_test_split folds are bit-identical team-wide
       - scikit-image
       - matplotlib
       # --- computer vision ---
