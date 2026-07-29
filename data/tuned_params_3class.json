@@ -1,0 +1,107 @@
+{
+  "Trend+Flow|SVM": {
+    "val_f1": 0.5873,
+    "params": {
+      "C": 10,
+      "gamma": "scale"
+    }
+  },
+  "Trend+Flow|RF": {
+    "val_f1": 0.611,
+    "params": {
+      "n_estimators": 300,
+      "max_depth": null,
+      "max_features": "sqrt"
+    }
+  },
+  "Trend+Flow|LogReg": {
+    "val_f1": 0.4509,
+    "params": {
+      "C": 0.1
+    }
+  },
+  "HOG|SVM": {
+    "val_f1": 0.6022,
+    "params": {
+      "C": 1,
+      "gamma": "scale"
+    }
+  },
+  "HOG|RF": {
+    "val_f1": 0.5173,
+    "params": {
+      "n_estimators": 300,
+      "max_depth": 20,
+      "max_features": "sqrt"
+    }
+  },
+  "HOG|LogReg": {
+    "val_f1": 0.5492,
+    "params": {
+      "C": 0.1
+    }
+  },
+  "HOG+Trend+Flow|SVM": {
+    "val_f1": 0.5953,
+    "params": {
+      "C": 1,
+      "gamma": "scale"
+    }
+  },
+  "HOG+Trend+Flow|RF": {
+    "val_f1": 0.559,
+    "params": {
+      "n_estimators": 300,
+      "max_depth": null,
+      "max_features": "sqrt"
+    }
+  },
+  "HOG+Trend+Flow|LogReg": {
+    "val_f1": 0.5498,
+    "params": {
+      "C": 0.1
+    }
+  },
+  "All-classical|SVM": {
+    "val_f1": 0.5953,
+    "params": {
+      "C": 10,
+      "gamma": "scale"
+    }
+  },
+  "All-classical|RF": {
+    "val_f1": 0.5778,
+    "params": {
+      "n_estimators": 300,
+      "max_depth": null,
+      "max_features": "sqrt"
+    }
+  },
+  "All-classical|LogReg": {
+    "val_f1": 0.545,
+    "params": {
+      "C": 0.1
+    }
+  },
+  "Trend+Flow+CNN|SVM": {
+    "val_f1": 0.6244,
+    "params": {
+      "C": 1,
+      "gamma": "scale"
+    }
+  },
+  "Trend+Flow+CNN|RF": {
+    "val_f1": 0.6188,
+    "params": {
+      "n_estimators": 300,
+      "max_depth": 20,
+      "max_features": "sqrt"
+    }
+  },
+  "Trend+Flow+CNN|LogReg": {
+    "val_f1": 0.622,
+    "params": {
+      "C": 1.0
+    }
+  }
+}
