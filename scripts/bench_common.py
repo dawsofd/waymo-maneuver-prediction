@@ -32,6 +32,7 @@ SOURCES = {
     'Road_v2':    ('road_v2_3class.npy',          'seq_ids_3class.npy',              'road_v2_val.npy',            'seq_ids_val.npy'),
     'VehicleOcc': ('vehicle_occupancy_3class.npy','seq_ids_3class.npy',              'vehicle_occupancy_val.npy',  'seq_ids_val.npy'),
     'Trend+Flow': ('framediff_v2_3class.npy',     'framediff_v2_3class_seq_ids.npy', 'framediff_v2_val.npy',       'seq_ids_val.npy'),
+    'BDD':        ('bdd100k_resnet50_scene_3class.npy', 'bdd100k_resnet50_scene_3class_seq_ids.npy', 'bdd100k_resnet50_scene_val_3class.npy', 'bdd100k_resnet50_scene_val_3class_seq_ids.npy'),
 }
 
 

@@ -15,8 +15,11 @@ Dataset End-to-End (WOD-E2E, CVPR 2026).
 
 **Classification task (final):** 3-class sequence-level maneuver prediction —
 `straight`, `left-turn`, `right-turn`.
-**Dataset:** 2,037 labeled training sequences from WOD-E2E; 1,604 remain after
-restricting to the three target classes.
+**Dataset (final):** the WOD-E2E training (2,037) and validation (479) splits are pooled —
+Waymo's test split cannot be labeled (future trajectories withheld) — giving **1,966
+three-class sequences**, re-split stratified 70/15/15 (train 1,376 / val 295 / test 295)
+with a fixed seed. The frozen fold assignment lives in `data/cnn_2d_seq_fold.csv`, and
+every feature family joins it by sequence id.
 
 > **Task history — 5-class → 3-class.** The project began as a 5-class task
 > (`straight`, `left-turn`, `right-turn`, `lane-change-left`, `lane-change-right`).
@@ -29,22 +32,35 @@ restricting to the three target classes.
 
 ## Results
 
-The final benchmark compares every candidate feature set with balanced SVM and
-Random-Forest classifiers on a held-out split of the 1,604 three-class sequences.
+The final benchmark (`notebooks/benchmark_pooled_3class.ipynb`) evaluates every feature
+family on the pooled 1,966-sequence set with the frozen 70/15/15 fold: fit on train,
+select on validation macro-F1, report once on the held-out test fold. Balanced SVM (RBF)
+and Random Forest throughout.
 
-| Feature set | Model | Accuracy | Macro-F1 |
-|---|---|---|---|
-| Majority-class baseline | — | 0.464 | — |
-| HOG alone | SVM | 0.601 | 0.547 |
-| **Trend + Flow (temporal)** | **Random Forest** | **0.648** | **0.587** |
+| Pipeline (test fold) | Accuracy | Macro-F1 |
+|---|---|---|
+| Majority-class baseline | 0.461 | 0.210 |
+| HOG / SVM | 0.576 | 0.526 |
+| 2D CNN embedding / SVM | 0.542 | 0.517 |
+| BDD100K ResNet-50 embedding / RF | 0.512 | 0.441 |
+| **Trend + Flow / RF (best classical)** | **0.671** | **0.607** |
+| **Trend + Flow + frozen MoViNet / SVM (final)** | **0.746** | **0.693** |
 
-**Best result: the temporal Trend+Flow feature set with a Random Forest — 64.8%
-accuracy / 0.587 macro-F1**, roughly +18 points over the majority baseline and the
-strongest of all evaluated feature sets. Trend+Flow captures how road geometry and
-optical-flow quantities drift across the context window, which carries more
-turn-vs-straight signal than any single static frame feature. See
-`notebooks/framediff_v2_3class.ipynb` (Cell 11 benchmark) for the full comparison and
-`notebooks/feature_pipeline_v3_3class.ipynb` (Section 9) for the static-feature bake-off.
+**Final result: Trend+Flow stacked with frozen MoViNet-A0 (Kinetics-600) video
+embeddings, SVM — 74.6% accuracy / 0.693 macro-F1** (per-class recall 0.94 / 0.67 / 0.46
+for straight / right / left). The best purely classical model is **Trend+Flow with a
+Random Forest (0.671 / 0.607)** — 22 hand-crafted temporal dimensions that beat every
+single-frame family, including learned embeddings. Trend+Flow captures how road geometry
+and optical-flow quantities drift across the context window; a driving-domain
+*single-frame* embedding (BDD100K ResNet-50) does not help, confirming that motion, not
+appearance, carries the maneuver signal. Selection details, ablations (CNN, BDD), and a
+documented validation-selection-noise example are in the benchmark notebook's read-out;
+`notebooks/efficiency_and_tuning.ipynb` adds hyperparameter search and timing.
+
+> Earlier iteration results (e.g. Trend+Flow/RF 0.648/0.587, HOG/SVM 0.601/0.547,
+> baseline 0.464) were computed on the pre-pooling 1,604-sequence 75/25 split and remain
+> in `framediff_v2_3class.ipynb` / `feature_pipeline_v3_3class.ipynb` as history — they
+> are not comparable to the pooled numbers above.
 
 ---
 
@@ -88,8 +104,12 @@ baseline; it is not part of our label logic.
 │   └── labeling.md                      # maneuver-labeling methodology + citations
 ├── notebooks/                           # CURRENT 3-class pipeline
 │   ├── waymo_feature_extraction.ipynb   # ← BASE: HOG / HSV / YOLO / road-geometry features
-│   ├── feature_pipeline_v3_3class.ipynb # ← PRIMARY: 3-class assembly, engineered features, benchmark
-│   ├── framediff_v2_3class.ipynb        # ← temporal Trend+Flow features (the winning set)
+│   ├── feature_pipeline_v3_3class.ipynb # ← 3-class assembly + engineered features (old-split benchmark)
+│   ├── framediff_v2_3class.ipynb        # ← temporal Trend+Flow features (winning classical set)
+│   ├── benchmark_pooled_3class.ipynb    # ← FINAL benchmark on the pooled 70/15/15 fold + figures
+│   ├── efficiency_and_tuning.ipynb      # hyperparameter search + efficiency/accuracy tradeoff
+│   ├── CNN_2D_resplit.ipynb             # builds the pooled 1,966-seq stratified fold
+│   ├── CNN_2D / CNN_3D / CNN_3D_v2.ipynb# learned features (2D, prior-only 3D, frozen MoViNet)
 │   ├── label_design.ipynb               # label justification (intent vs. maneuver)
 │   ├── dimensionality_reduction_analysis.ipynb  # PCA variance (mirrors framediff chart)
 │   └── train_inventory.ipynb            # dataset structure / .npz schema
@@ -268,8 +288,11 @@ With the `281-s2-group2` kernel selected, run the notebooks in order:
    from the team Google Drive.
 2. `notebooks/framediff_v2_3class.ipynb` — extracts temporal Trend+Flow features. Farneback
    optical flow is the bottleneck (~15–20 min; run under `caffeinate -i`).
-3. `notebooks/feature_pipeline_v3_3class.ipynb` — assembles the 3-class feature sets, runs
-   the benchmark, and reports the winning model.
+3. `notebooks/feature_pipeline_v3_3class.ipynb` — assembles the 3-class feature sets
+   (its internal benchmark is the old 1,604/75-25 split, kept as history).
+4. `notebooks/benchmark_pooled_3class.ipynb` — the **final benchmark** on the pooled
+   70/15/15 fold: full family comparison, final-model selection, MoViNet stack, ablations
+   (CNN, BDD), and the presentation/paper figures (saved under `outputs/`).
 
 **Feature families produced:**
 
