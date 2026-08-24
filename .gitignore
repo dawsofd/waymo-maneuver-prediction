@@ -60,3 +60,5 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+data/processed/waymo_e2e/features/hog_v2.npy
+_to_delete/
